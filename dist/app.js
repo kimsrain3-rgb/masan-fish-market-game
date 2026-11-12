@@ -4,6 +4,7 @@ import {makeMarket} from './market.js';
 import {createPlay} from './play.js';
 import {createPlayer} from './player.js?v=mobile-layout-1';
 import {replaceRestaurant} from './restaurant-model.js';
+import {updateRestaurantSign} from './restaurant-sign.js?v=bada-sign-1';
 const renderer=makeRenderer();renderer.setSize(innerWidth,innerHeight);document.querySelector('#scene').appendChild(renderer.domElement);
 const scene=new T.Scene();scene.background=new T.Color('#becdd0');scene.fog=new T.Fog('#becdd0',23,68);
 const camera=new T.PerspectiveCamera(innerWidth<=700?73:57,innerWidth/innerHeight,.12,110);camera.position.set(1.3,2.8,22);camera.lookAt(-.5,2.7,-8);
@@ -59,4 +60,4 @@ let previous=performance.now(),time=0,lastCall='';function frame(now){requestAni
  market.update(time,dt);renderer.render(scene,camera);
 }requestAnimationFrame(frame);addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<=700?73:57;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
-replaceRestaurant(scene,market).then(()=>{document.querySelector('#enter-restaurant').textContent='바다횟집 안으로 들어가기 ↗';document.querySelector('#seat').textContent='식탁에 앉기';notify('바다횟집 모델을 불러왔어요. 상단 ‘횟집 앞’에서 둘러보세요.');document.body.dataset.restaurantModel='loaded';}).catch(error=>{console.error('횟집 모델 로딩 실패',error);notify('횟집 모델을 불러오지 못했어요. 새로고침해 주세요.');document.body.dataset.restaurantModel='failed';});
+replaceRestaurant(scene,market).then(()=>{updateRestaurantSign(market.restaurant.model);document.querySelector('#enter-restaurant').textContent='바다횟집 안으로 들어가기 ↗';document.querySelector('#seat').textContent='식탁에 앉기';notify('바다횟집 모델을 불러왔어요. 상단 ‘횟집 앞’에서 둘러보세요.');document.body.dataset.restaurantModel='loaded';}).catch(error=>{console.error('횟집 모델 로딩 실패',error);notify('횟집 모델을 불러오지 못했어요. 새로고침해 주세요.');document.body.dataset.restaurantModel='failed';});
