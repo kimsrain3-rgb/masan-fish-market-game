@@ -2,7 +2,7 @@ import * as T from './assets/three.module.js';
 import {makeRenderer} from './renderer.js';
 import {makeMarket} from './market.js';
 import {createPlay} from './play.js';
-import {createPlayer} from './player.js';
+import {createPlayer} from './player.js?v=mobile-layout-1';
 import {replaceRestaurant} from './restaurant-model.js';
 const renderer=makeRenderer();renderer.setSize(innerWidth,innerHeight);document.querySelector('#scene').appendChild(renderer.domElement);
 const scene=new T.Scene();scene.background=new T.Color('#becdd0');scene.fog=new T.Fog('#becdd0',23,68);
