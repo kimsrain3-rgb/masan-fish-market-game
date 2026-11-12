@@ -12,6 +12,8 @@ export function createPlay({market,notify,enter,exit,sit,stand,stop}){
  function restoreMeal(){if(state.meal&&state.meal.left>0){market.restaurant.showDish(state.meal.extra);for(let i=0;i<6-state.meal.left;i++)market.restaurant.eat(i);}updateRoom();}
  function serve(withExtra){state.meal={left:6,extra:withExtra};market.restaurant.showDish(withExtra);save();updateRoom();}
  function goIn(){close();room=true;seated=false;enter();updateRoom();notify('바다횟집에 들어왔어요. 나무 식탁에 앉아보세요.');}
+ function walkIn(){if(room)return;room=true;seated=false;updateRoom();notify('바다횟집 안으로 들어왔어요. 바닥을 눌러 걸어보세요.');}
+ function walkOut(){if(!room)return;room=false;seated=false;updateRoom();notify('골목으로 나왔어요.');}
  function seatedNow(){seated=true;sit();updateRoom();notify(state.meal?.left?'회 한 상이 준비됐어요. 한 점 드셔보세요.':'정숙 이모와 흥정해서 모둠회 한 상을 주문해보세요.');}
  function trade(shop){current=shop;agreed=shop.price;extra=false;renderTrade();}
  function renderTrade(message=''){
@@ -28,5 +30,5 @@ export function createPlay({market,notify,enter,exit,sit,stand,stop}){
  $('#bag').onclick=()=>{show('오늘의 장바구니','실제 결제가 없는 어시장 놀이');if(!state.bag.length)para('아직 빈 바구니예요. 상인에게 말을 걸고 흥정해보세요.');for(const item of state.bag)para(item.name+' · '+money(item.price)+'원'+(item.extra?' · 덤도 받았어요!':''));para('남은 놀이 돈 '+money(state.wallet)+'원','price-line');btn('새 장보기 · 놀이 돈 50,000원 받기',()=>{state={wallet:50000,bag:[],meal:null};market.restaurant.clear();save();updateRoom();close();notify('새 장보기를 시작합니다. 놀이 돈 50,000원을 받았어요.');});};
  $('#enter-restaurant').onclick=goIn;$('#seat').onclick=seatedNow;$('#stand').onclick=()=>{seated=false;stand();updateRoom();};$('#leave').onclick=()=>{room=false;seated=false;exit();updateRoom();notify('다시 시장 골목으로 나왔어요.');};$('#order').onclick=()=>trade(market.restaurant.shop);
  $('#eat').onclick=()=>{if(eating||!state.meal?.left)return;eating=true;$('#eat').disabled=true;$('#bite').hidden=false;market.restaurant.eat(6-state.meal.left);state.meal.left--;save();updateRoom();notify(state.meal.left?'쫄깃한 회 한 점! '+state.meal.left+'점 남았어요.':'잘 먹었습니다! 시장에서 다음 가게도 들러보세요.');setTimeout(()=>{$('#bite').hidden=true;eating=false;$('#eat').disabled=false;},850);};
- $('#wallet').onclick=()=>$('#bag').click();save();restoreMeal();return{trade,close,goIn,get isOpen(){return open;},get inRoom(){return room;},get seated(){return seated;},get nearShop(){return current;}};
+ $('#wallet').onclick=()=>$('#bag').click();save();restoreMeal();return{trade,close,goIn,walkIn,walkOut,get isOpen(){return open;},get inRoom(){return room;},get seated(){return seated;},get nearShop(){return current;}};
 }

@@ -1,4 +1,8 @@
 /* Keep the keyboard desktop view free of touch controls. */
+#room-actions { pointer-events: none; }
+#room-actions button { pointer-events: auto; }
+#caption { pointer-events: none; }
+
 @media (hover: hover) and (pointer: fine) {
   #pad { display: none; }
   .controls span { color: #f7f3e8; text-shadow: 0 1px 5px #102e32; }
