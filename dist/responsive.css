@@ -2,6 +2,11 @@
 #room-actions { pointer-events: none; }
 #room-actions button { pointer-events: auto; }
 #caption { pointer-events: none; }
+#host-service { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #bda988; }
+#host-service[hidden], #host-service .host-buttons[hidden] { display: none; }
+#host-service .host-line { font-size: 12px; line-height: 1.45; }
+#host-service .host-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+#host-service button { padding: 7px 10px; }
 
 @media (hover: hover) and (pointer: fine) {
   #pad { display: none; }
@@ -14,6 +19,7 @@
 
 /* A narrow screen needs a small top bar and a single bottom control area. */
 @media (max-width: 700px) {
+  #host-service .host-line { font-size: 10px; }
   header {
     top: 0;
     height: 82px;

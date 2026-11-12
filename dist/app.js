@@ -7,6 +7,7 @@ import {replaceRestaurant} from './restaurant-model.js';
 import {updateRestaurantSign} from './restaurant-sign.js?v=bada-sign-1';
 import {openRestaurantEntrance} from './restaurant-entry.js?v=walk-in-1';
 import {restaurantWalkable,routeRestaurant} from './restaurant-route.js?v=walk-in-1';
+import {createRestaurantService} from './restaurant-service.js?v=host-welcome-1';
 const renderer=makeRenderer();renderer.setSize(innerWidth,innerHeight);document.querySelector('#scene').appendChild(renderer.domElement);
 const scene=new T.Scene();scene.background=new T.Color('#becdd0');scene.fog=new T.Fog('#becdd0',23,68);
 const camera=new T.PerspectiveCamera(innerWidth<=700?73:57,innerWidth/innerHeight,.12,110);camera.position.set(1.3,2.8,22);camera.lookAt(-.5,2.7,-8);
@@ -17,7 +18,8 @@ function notify(text){caption.textContent=text;speechUntil=performance.now()+600
 function stop(){keys.clear();drag=false;destination=null;waypoints=[];marker.visible=false;}
 function setPose(x,y,z,angle=0,tilt=0){start();overview=false;position.set(x,y,z);yaw=angle;pitch=tilt;camera.position.set(x+Math.sin(yaw)*3.4,3.1,z+Math.cos(yaw)*3.4);camera.lookAt(x,1.15,z);player.root.rotation.y=yaw+Math.PI;stop();}
 let tableView=true;const viewButton=document.createElement('button');viewButton.id='table-view';viewButton.textContent='내 모습도 보기';viewButton.hidden=true;document.querySelector('#room-actions>div').appendChild(viewButton);viewButton.onclick=()=>{tableView=!tableView;viewButton.textContent=tableView?'내 모습도 보기':'식탁 눈높이로 보기';};
-const play=createPlay({market,notify,position,stop,enter:()=>setPose(market.restaurant.layout?5.8:7,1.72,market.restaurant.z+1.98,-Math.PI/2),exit:()=>setPose(0,1.72,market.restaurant.z+2),sit:()=>setPose(market.restaurant.layout?6.47:8.4,1.4,market.restaurant.z+(market.restaurant.layout?.52:1.65),-Math.PI/2,-.28),stand:()=>setPose(market.restaurant.layout?5.8:7,1.72,market.restaurant.z+1.98,-Math.PI/2)});
+let restaurantService=null;
+const play=createPlay({market,notify,position,stop,onRoomEnter:()=>restaurantService?.enter(),onRoomExit:()=>restaurantService?.leave(),onSeat:()=>restaurantService?.seat(),onOrder:()=>restaurantService?.orderDone(),enter:()=>setPose(market.restaurant.layout?5.8:7,1.72,market.restaurant.z+1.98,-Math.PI/2),exit:()=>setPose(0,1.72,market.restaurant.z+2),sit:()=>setPose(market.restaurant.layout?6.47:8.4,1.4,market.restaurant.z+(market.restaurant.layout?.52:1.65),-Math.PI/2,-.28),stand:()=>setPose(market.restaurant.layout?5.8:7,1.72,market.restaurant.z+1.98,-Math.PI/2)});
 function start(){walking=true;document.body.classList.add('walking');document.querySelector('#start').textContent='산책 중';}
 function reset(){play.close();if(play.inRoom){document.querySelector('#leave').click();}position.set(0,1.72,10.4);yaw=0;pitch=0;overview=false;start();document.querySelector('#view').textContent='위에서 보기';}
 document.querySelector('#start').onclick=start;document.querySelector('#home').onclick=reset;
@@ -66,7 +68,7 @@ let previous=performance.now(),time=0,lastCall='';function frame(now){requestAni
  if(now>speechUntil)caption.textContent=play.inRoom?(play.seated?'눈앞의 회 한 상을 즐겨보세요.':'나무 식탁에 앉아 정숙 이모와 흥정해보세요.'):position.z<-46?'골목 끝에는 바다가 있습니다.':position.z<-31?'과일 골목 · 귤과 사과가 바구니 가득 놓여 있어요.':nearby?'상인과 가격도 흥정하고 덤도 부탁해보세요. · E 키':'활어 골목 · 파란 수조와 분홍 대야 사이를 천천히 걸어요.';
  document.querySelector('#zone-name').textContent=play.inRoom?'바다횟집 · 횟집 안':position.z<-46?'03 — 바닷가':position.z<-31?'02 — 과일 골목':'01 — 활어 골목';
  }else{player.hide();camera.position.x=1.3+Math.sin(time*.1)*.15;camera.lookAt(-.5,2.7,-8);}
- market.update(time,dt);renderer.render(scene,camera);
+ market.update(time,dt);restaurantService?.update(dt);renderer.render(scene,camera);
 }requestAnimationFrame(frame);addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<=700?73:57;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
-replaceRestaurant(scene,market).then(()=>{updateRestaurantSign(market.restaurant.model);openRestaurantEntrance(market.restaurant.model);document.querySelector('#enter-restaurant').textContent='바다횟집 안으로 들어가기 ↗';document.querySelector('#seat').textContent='식탁에 앉기';notify('바다횟집 모델을 불러왔어요. 상단 ‘횟집 앞’에서 둘러보세요.');document.body.dataset.restaurantModel='loaded';}).catch(error=>{console.error('횟집 모델 로딩 실패',error);notify('횟집 모델을 불러오지 못했어요. 새로고침해 주세요.');document.body.dataset.restaurantModel='failed';});
+replaceRestaurant(scene,market).then(()=>{updateRestaurantSign(market.restaurant.model);openRestaurantEntrance(market.restaurant.model);restaurantService=createRestaurantService(scene,market,{seat:()=>document.querySelector('#seat').click(),order:()=>play.trade(market.restaurant.shop),notify});if(play.inRoom)restaurantService.enter();document.querySelector('#enter-restaurant').textContent='바다횟집 안으로 들어가기 ↗';document.querySelector('#seat').textContent='식탁에 앉기';notify('바다횟집 모델을 불러왔어요. 상단 ‘횟집 앞’에서 둘러보세요.');document.body.dataset.restaurantModel='loaded';}).catch(error=>{console.error('횟집 모델 로딩 실패',error);notify('횟집 모델을 불러오지 못했어요. 새로고침해 주세요.');document.body.dataset.restaurantModel='failed';});
