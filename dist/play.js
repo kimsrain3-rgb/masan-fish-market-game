@@ -8,7 +8,7 @@ export function createPlay({market,notify,enter,exit,sit,stand,stop,onRoomEnter=
  function show(title,who){stop();open=true;panel.hidden=false;$('#trade-title').textContent=title;$('#trade-person').textContent=who;body.replaceChildren();}
  function para(text,cl=''){const p=document.createElement('p');p.textContent=text;p.className=cl;body.append(p);return p;}
  function btn(text,action,primary=false){const b=document.createElement('button');b.textContent=text;if(primary)b.className='primary-action';b.onclick=action;body.append(b);return b;}
- function updateRoom(){const count=state.meal?.left||0;$('#room-actions').hidden=!room;$('#seat').hidden=seated;$('#stand').hidden=!seated;$('#order').hidden=!seated||count>0;$('#eat').hidden=!seated||count<=0;$('#eat').textContent='회 한 점 먹기 · '+count+'점';$('#meal-status').textContent=count?'회 한 상 · '+count+'점 남음':state.meal?'잘 먹었습니다!':'안으로 들어왔어요. 자리에 앉아보세요.';}
+ function updateRoom(){const count=state.meal?.left||0;$('#room-actions').hidden=!room;$('#seat').hidden=seated;$('#stand').hidden=!seated;$('#order').hidden=!seated||count>0;$('#eat').hidden=!seated||count<=0;$('#eat').textContent='회 한 점 먹기 · '+count+'점';$('#meal-status').textContent=count?'회 한 상 · '+count+'점 남음':state.meal?'잘 먹었습니다!':seated?'정숙 이모와 메뉴를 골라보세요.':'자리에 앉아보세요.';}
  function restoreMeal(){if(state.meal&&state.meal.left>0){market.restaurant.showDish(state.meal.extra);for(let i=0;i<6-state.meal.left;i++)market.restaurant.eat(i);}updateRoom();}
  function serve(withExtra){state.meal={left:6,extra:withExtra};market.restaurant.showDish(withExtra);save();updateRoom();}
  function goIn(){if(room){close();updateRoom();return;}close();room=true;seated=false;enter();updateRoom();onRoomEnter();notify('바다횟집에 들어왔어요. 나무 식탁에 앉아보세요.');}

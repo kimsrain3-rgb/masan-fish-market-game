@@ -1,13 +1,14 @@
 import * as T from './assets/three.module.js';
 import {makeRenderer} from './renderer.js';
 import {makeMarket} from './market.js';
-import {createPlay} from './play.js';
+import {createPlay} from './play.js?v=seat-facing-1';
 import {createPlayer} from './player.js?v=mobile-layout-1';
 import {replaceRestaurant} from './restaurant-model.js';
 import {updateRestaurantSign} from './restaurant-sign.js?v=bada-sign-1';
 import {openRestaurantEntrance} from './restaurant-entry.js?v=walk-in-1';
 import {restaurantWalkable,routeRestaurant} from './restaurant-route.js?v=walk-in-1';
 import {createRestaurantService} from './restaurant-service.js?v=host-welcome-1';
+import {faceRestaurantSeatTowardMarket} from './restaurant-seating.js?v=seat-facing-1';
 const renderer=makeRenderer();renderer.setSize(innerWidth,innerHeight);document.querySelector('#scene').appendChild(renderer.domElement);
 const scene=new T.Scene();scene.background=new T.Color('#becdd0');scene.fog=new T.Fog('#becdd0',23,68);
 const camera=new T.PerspectiveCamera(innerWidth<=700?73:57,innerWidth/innerHeight,.12,110);camera.position.set(1.3,2.8,22);camera.lookAt(-.5,2.7,-8);
@@ -19,7 +20,7 @@ function stop(){keys.clear();drag=false;destination=null;waypoints=[];marker.vis
 function setPose(x,y,z,angle=0,tilt=0){start();overview=false;position.set(x,y,z);yaw=angle;pitch=tilt;camera.position.set(x+Math.sin(yaw)*3.4,3.1,z+Math.cos(yaw)*3.4);camera.lookAt(x,1.15,z);player.root.rotation.y=yaw+Math.PI;stop();}
 let tableView=true;const viewButton=document.createElement('button');viewButton.id='table-view';viewButton.textContent='내 모습도 보기';viewButton.hidden=true;document.querySelector('#room-actions>div').appendChild(viewButton);viewButton.onclick=()=>{tableView=!tableView;viewButton.textContent=tableView?'내 모습도 보기':'식탁 눈높이로 보기';};
 let restaurantService=null;
-const play=createPlay({market,notify,position,stop,onRoomEnter:()=>restaurantService?.enter(),onRoomExit:()=>restaurantService?.leave(),onSeat:()=>restaurantService?.seat(),onOrder:()=>restaurantService?.orderDone(),enter:()=>setPose(market.restaurant.layout?5.8:7,1.72,market.restaurant.z+1.98,-Math.PI/2),exit:()=>setPose(0,1.72,market.restaurant.z+2),sit:()=>setPose(market.restaurant.layout?6.47:8.4,1.4,market.restaurant.z+(market.restaurant.layout?.52:1.65),-Math.PI/2,-.28),stand:()=>setPose(market.restaurant.layout?5.8:7,1.72,market.restaurant.z+1.98,-Math.PI/2)});
+const play=createPlay({market,notify,position,stop,onRoomEnter:()=>restaurantService?.enter(),onRoomExit:()=>restaurantService?.leave(),onSeat:()=>restaurantService?.seat(),onOrder:()=>restaurantService?.orderDone(),enter:()=>setPose(market.restaurant.layout?5.8:7,1.72,market.restaurant.z+1.98,-Math.PI/2),exit:()=>setPose(0,1.72,market.restaurant.z+2),sit:()=>{setPose(market.restaurant.layout?7.65:8.4,1.4,market.restaurant.z+(market.restaurant.layout?.52:1.65),market.restaurant.layout?Math.PI/2:-Math.PI/2,-.15);if(market.restaurant.layout)camera.position.set(8.05,2.45,market.restaurant.z-1.25);},stand:()=>setPose(market.restaurant.layout?7.65:7,1.72,market.restaurant.z+(market.restaurant.layout?.52:1.5),market.restaurant.layout?Math.PI/2:-Math.PI/2)});
 function start(){walking=true;document.body.classList.add('walking');document.querySelector('#start').textContent='산책 중';}
 function reset(){play.close();if(play.inRoom){document.querySelector('#leave').click();}position.set(0,1.72,10.4);yaw=0;pitch=0;overview=false;start();document.querySelector('#view').textContent='위에서 보기';}
 document.querySelector('#start').onclick=start;document.querySelector('#home').onclick=reset;
@@ -47,19 +48,21 @@ let previous=performance.now(),time=0,lastCall='';function frame(now){requestAni
  if(!play.inRoom&&position.x>4.75&&Math.abs(position.z-market.restaurant.z-2)<.48)play.walkIn();
  else if(play.inRoom&&position.x<4.45&&Math.abs(position.z-market.restaurant.z-2)<.48)play.walkOut();}
 
- const moved=position.distanceToSquared(before)>.00001;if(moved){const heading=Math.atan2(position.x-before.x,position.z-before.z);player.root.rotation.y+=T.MathUtils.euclideanModulo(heading-player.root.rotation.y+Math.PI,Math.PI*2)-Math.PI;}if(play.seated)player.root.rotation.y=market.restaurant.layout?Math.PI/2:Math.PI;
+ const moved=position.distanceToSquared(before)>.00001;if(moved){const heading=Math.atan2(position.x-before.x,position.z-before.z);player.root.rotation.y+=T.MathUtils.euclideanModulo(heading-player.root.rotation.y+Math.PI,Math.PI*2)-Math.PI;}if(play.seated)player.root.rotation.y=market.restaurant.layout?-Math.PI/2:Math.PI;
  const restaurantView=!play.inRoom&&!overview&&position.x<=1.7&&Math.abs(position.z-market.restaurant.z)<3.2&&Math.cos(yaw+Math.PI/2)>.88;
+ const desiredFov=play.seated&&tableView&&market.restaurant.layout?(innerWidth<=700?78:68):(innerWidth<=700?73:57);if(camera.fov!==desiredFov){camera.fov=desiredFov;camera.updateProjectionMatrix();}
  const distance=overview?4.3:play.inRoom?2.6:3.4;
  const cameraGoal=play.seated?new T.Vector3(position.x-1.25,2.6,position.z+1.8):new T.Vector3(position.x+Math.sin(yaw)*distance,overview?4.2:3.05,position.z+Math.cos(yaw)*distance);
  if(restaurantView)cameraGoal.set(position.x-1.4,2.65,position.z+(innerWidth<=700?8.5:6.1));
  else if(!play.inRoom){const roadCameraEdge=innerWidth<=700?2.1:1.5;cameraGoal.x=T.MathUtils.clamp(cameraGoal.x,-roadCameraEdge,roadCameraEdge);}
  if(play.inRoom){cameraGoal.x=T.MathUtils.clamp(cameraGoal.x,market.restaurant.layout?4.2:5.9,market.restaurant.layout?8.5:11.3);cameraGoal.z=T.MathUtils.clamp(cameraGoal.z,market.restaurant.z-3,market.restaurant.z+3);}
- if(play.seated&&market.restaurant.layout)cameraGoal.set(5.5,2.4,market.restaurant.z+2);
- if(play.seated&&tableView)cameraGoal.set(market.restaurant.layout?6.35:8.4,market.restaurant.layout?1.25:1.48,market.restaurant.z+(market.restaurant.layout?.52:1.25));
+ if(play.seated&&market.restaurant.layout)cameraGoal.set(8.05,2.45,market.restaurant.z-1.25);
+ if(play.seated&&tableView)cameraGoal.set(market.restaurant.layout?7.82:8.4,market.restaurant.layout?1.45:1.48,market.restaurant.z+(market.restaurant.layout?.58:1.25));
  camera.position.lerp(cameraGoal,Math.min(1,dt*7));
  if(restaurantView)camera.lookAt(position.x+(innerWidth<=700?3.2:2.2),1.35+pitch*2,position.z-.1);
  else camera.lookAt(position.x,play.seated?.95:1.05+pitch*2,position.z+(play.seated?-.7:0));
- if(play.seated&&tableView){camera.lookAt(market.restaurant.layout?7.25:9.2,market.restaurant.layout?.76:1.28,market.restaurant.z+(market.restaurant.layout?.59:-1.1));player.hide();}
+ if(play.seated&&!tableView&&market.restaurant.layout)camera.lookAt(6.95,1.04,market.restaurant.z+.45);
+ if(play.seated&&tableView){camera.lookAt(market.restaurant.layout?6.12:9.2,market.restaurant.layout?1.4:1.28,market.restaurant.z+(market.restaurant.layout?.72:-1.1));player.hide();}
  else player.update(position,moved,time,play.seated,camera);
  viewButton.hidden=!play.seated;
  walkStatus.textContent=play.seated?'식사 중 · 일어나면 다시 걸을 수 있어요':destination?'이동 중 · '+Math.hypot(destination.x-position.x,destination.z-position.z).toFixed(1)+'m':'바닥을 클릭해 걸어가세요';marker.scale.setScalar(1+Math.sin(time*5)*.08);
@@ -71,4 +74,4 @@ let previous=performance.now(),time=0,lastCall='';function frame(now){requestAni
  market.update(time,dt);restaurantService?.update(dt);renderer.render(scene,camera);
 }requestAnimationFrame(frame);addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<=700?73:57;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
-replaceRestaurant(scene,market).then(()=>{updateRestaurantSign(market.restaurant.model);openRestaurantEntrance(market.restaurant.model);restaurantService=createRestaurantService(scene,market,{seat:()=>document.querySelector('#seat').click(),order:()=>play.trade(market.restaurant.shop),notify});if(play.inRoom)restaurantService.enter();document.querySelector('#enter-restaurant').textContent='바다횟집 안으로 들어가기 ↗';document.querySelector('#seat').textContent='식탁에 앉기';notify('바다횟집 모델을 불러왔어요. 상단 ‘횟집 앞’에서 둘러보세요.');document.body.dataset.restaurantModel='loaded';}).catch(error=>{console.error('횟집 모델 로딩 실패',error);notify('횟집 모델을 불러오지 못했어요. 새로고침해 주세요.');document.body.dataset.restaurantModel='failed';});
+replaceRestaurant(scene,market).then(()=>{updateRestaurantSign(market.restaurant.model);openRestaurantEntrance(market.restaurant.model);faceRestaurantSeatTowardMarket(market.restaurant.model);restaurantService=createRestaurantService(scene,market,{seat:()=>document.querySelector('#seat').click(),order:()=>play.trade(market.restaurant.shop),notify});if(play.inRoom)restaurantService.enter();document.querySelector('#enter-restaurant').textContent='바다횟집 안으로 들어가기 ↗';document.querySelector('#seat').textContent='식탁에 앉기';notify('바다횟집 모델을 불러왔어요. 상단 ‘횟집 앞’에서 둘러보세요.');document.body.dataset.restaurantModel='loaded';}).catch(error=>{console.error('횟집 모델 로딩 실패',error);notify('횟집 모델을 불러오지 못했어요. 새로고침해 주세요.');document.body.dataset.restaurantModel='failed';});
