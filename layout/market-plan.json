@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "status": "draft-schematic",
+  "note": "확장용 연결 초안. 실제 지리 좌표나 확정된 골목 배치가 아니다.",
+  "currentPrototype": {
+    "source": "dist/market.js",
+    "lengthMetersApprox": 65,
+    "migration": "실제 동선 검증 후 한 alleyId에 대응. 그전에는 현재 좌표를 유지."
+  },
+  "target": { "alleyCount": 20, "lengthMetersEachApprox": [100, 140] },
+  "zones": [
+    { "id": "gateway", "name": "시장 입구·생활", "experience": "첫 상인과 짧은 흥정", "visuals": ["아케이드", "안내판", "손수레"] },
+    { "id": "live", "name": "활어·수조", "experience": "활어 구매와 횟집 연계", "visuals": ["파란 수조", "호스", "거품"] },
+    { "id": "fresh", "name": "선어·해산물", "experience": "손질과 품목별 흥정", "visuals": ["분홍 대야", "얼음", "스티로폼 상자"] },
+    { "id": "dried", "name": "건어물·젓갈", "experience": "보관법을 듣고 덤 요청", "visuals": ["말린 생선", "젓갈 통", "천막"] },
+    { "id": "produce", "name": "청과·채소", "experience": "장바구니와 식사 재료", "visuals": ["과일 상자", "채소 바구니", "가격표"] },
+    { "id": "dining", "name": "횟집·먹거리", "experience": "입장, 착석, 주문, 회 먹기", "visuals": ["바다횟집 GLB", "식탁", "간판"] }
+  ],
+  "junctions": [
+    { "id": "J01", "role": "대표 입구" }, { "id": "J02", "role": "활어 갈림길" },
+    { "id": "J03", "role": "선어 갈림길" }, { "id": "J04", "role": "해산물 갈림길" },
+    { "id": "J05", "role": "출입구 후보" }, { "id": "J06", "role": "생활 골목 교차점" },
+    { "id": "J07", "role": "수산 교차점" }, { "id": "J08", "role": "중앙 안내 교차점" },
+    { "id": "J09", "role": "횟집 앞" }, { "id": "J10", "role": "먹거리 교차점" },
+    { "id": "J11", "role": "건어물 출입구 후보" }, { "id": "J12", "role": "건어물 교차점" },
+    { "id": "J13", "role": "청과 갈림길" }, { "id": "J14", "role": "채소 교차점" },
+    { "id": "J15", "role": "보조 출입구 후보" }
+  ],
+  "alleys": [
+    { "id": "A01", "from": "J01", "to": "J02", "zone": "gateway", "focus": "시장 첫인상" },
+    { "id": "A02", "from": "J02", "to": "J03", "zone": "live", "focus": "활어 수조" },
+    { "id": "A03", "from": "J03", "to": "J04", "zone": "fresh", "focus": "선어 좌판" },
+    { "id": "A04", "from": "J04", "to": "J05", "zone": "fresh", "focus": "문어·해초" },
+    { "id": "A05", "from": "J06", "to": "J07", "zone": "gateway", "focus": "생활 가게" },
+    { "id": "A06", "from": "J07", "to": "J08", "zone": "live", "focus": "활어 거래" },
+    { "id": "A07", "from": "J08", "to": "J09", "zone": "fresh", "focus": "조개·꽃게" },
+    { "id": "A08", "from": "J09", "to": "J10", "zone": "dining", "focus": "횟집과 먹거리" },
+    { "id": "A09", "from": "J11", "to": "J12", "zone": "dried", "focus": "멸치·오징어" },
+    { "id": "A10", "from": "J12", "to": "J13", "zone": "dried", "focus": "젓갈과 반찬" },
+    { "id": "A11", "from": "J13", "to": "J14", "zone": "produce", "focus": "과일" },
+    { "id": "A12", "from": "J14", "to": "J15", "zone": "produce", "focus": "채소" },
+    { "id": "A13", "from": "J01", "to": "J06", "zone": "gateway", "focus": "입구 연결" },
+    { "id": "A14", "from": "J06", "to": "J11", "zone": "dried", "focus": "건어물 입구" },
+    { "id": "A15", "from": "J02", "to": "J07", "zone": "live", "focus": "수조 연결" },
+    { "id": "A16", "from": "J07", "to": "J12", "zone": "dried", "focus": "수산·건어물 전환" },
+    { "id": "A17", "from": "J03", "to": "J08", "zone": "fresh", "focus": "선어 연결" },
+    { "id": "A18", "from": "J08", "to": "J13", "zone": "produce", "focus": "청과 연결" },
+    { "id": "A19", "from": "J04", "to": "J09", "zone": "dining", "focus": "횟집 진입" },
+    { "id": "A20", "from": "J05", "to": "J10", "zone": "dining", "focus": "먹거리 순환" }
+  ]
+}
